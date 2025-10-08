@@ -1,98 +1,95 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import { StyleSheet, View, Text, TextInput, Image, TouchableOpacity, ToastAndroid } from 'react-native';
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  const mostraMensaje = () => {
+    ToastAndroid.showWithGravity('Se ha ingresado correctamente!', ToastAndroid.LONG, ToastAndroid.TOP);
+  };
+  return (
+    <View style={styles.container}>
+
+      <Image
+        style={styles.logo}
+        source={{
+          uri: 'https://ifes.edu.ar/assets/img/logo.png',
+        }}
+      />
+      <Text style={styles.titulo}>Bienvenido al sistema de gestión del alumno de IFES</Text>
+
+      <View style={styles.form}>
+        <Text style={styles.subtitulo}>Ingrese sus credenciales</Text>
+
+        <TextInput style={styles.input}
+          placeholder='Ingrese su DNI'
+          keyboardType='numeric'
+        />
+        <TextInput style={styles.input}
+          placeholder='Ingrese su Usuario'
+          keyboardType="default"   // 👈 teclado de letras
+        />
+        <TextInput style={styles.input}
+          secureTextEntry={true}
+          keyboardType="default"   // 👈 teclado de letras
+          placeholder='Ingrese su contraseña'
+        />
+        <TouchableOpacity style={styles.botonIngresar} onPress={mostraMensaje}>
+          <Text style={styles.textoBoton}>INGRESAR</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  titulo: {
+    fontSize: 18,
+    textAlign: "center",   // 👈 centra el texto horizontalmente
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  form: {
+    borderColor: "black",
+    borderWidth: 2,
+    marginTop: 10,
+    padding: 20,
+    width: "90%",
+    borderRadius: 5
   },
+  input: {
+    borderWidth: 1,
+    borderColor: "#E6B800",   // mismo color que el botón
+
+    height: 60,
+    marginTop: 15,
+    borderRadius: 10,
+    fontSize: 18,
+    textAlign: "center"
+  },
+  logo: {
+    width: 350,
+    height: 110
+  },
+  botonIngresar: {
+    marginTop: 20,        // separación desde el último input
+    backgroundColor: '#E6B800',
+    paddingVertical: 12,  // altura del botón
+    borderRadius: 8,      // esquinas redondeadas
+    alignItems: 'center', // centra el texto horizontalmente
+  },
+  textoBoton: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  subtitulo: {
+    marginTop: 10,
+    fontSize: 16,
+    textAlign: "center",   // centra el texto
+    fontWeight: "bold",
+    marginBottom: 10        // separa del primer input
+  },
+
 });
