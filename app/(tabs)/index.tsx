@@ -1,95 +1,86 @@
-import { StyleSheet, View, Text, TextInput, Image, TouchableOpacity, ToastAndroid } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, Button } from 'react-native';
+import { useState, useEffect } from 'react';
+import { IMateria } from '../types/IMateria';
+import Materia from "../../components/ifes/Materia";
+import { consultarMaterias } from "@/firebase/funciones"
 
-export default function HomeScreen() {
 
-  const mostraMensaje = () => {
-    ToastAndroid.showWithGravity('Se ha ingresado correctamente!', ToastAndroid.LONG, ToastAndroid.TOP);
-  };
-  return (
-    <View style={styles.container}>
+const initialMaterias: IMateria[] = [
+	{
+		nombre: "Análisis Matemático 1",
+		horario: "Lunes y Viernes de 19 a 21 Hs.",
+		profesor: {
+			nombre: "Juan",
+			apellido: "Perez"
+		},
+		descripcion: "En Análisis Matemático se abordan las bases del cálculo y sus aplicaciones en distintas áreas. El curso busca desarrollar la capacidad de razonamiento y resolución de problemas mediante herramientas analíticas",
+		handlerDesinscribir: () => { }
 
-      <Image
-        style={styles.logo}
-        source={{
-          uri: 'https://ifes.edu.ar/assets/img/logo.png',
-        }}
-      />
-      <Text style={styles.titulo}>Bienvenido al sistema de gestión del alumno de IFES</Text>
+	},
+	{
+		nombre: "Introducción a la Programación",
+		horario: "Martes y Jueves de 20 a 22 Hs.",
+		profesor: {
+			nombre: "Ana",
+			apellido: "García"
+		},
+		handlerDesinscribir: () => { }
+	}
+]
 
-      <View style={styles.form}>
-        <Text style={styles.subtitulo}>Ingrese sus credenciales</Text>
+export default function Materias() {
 
-        <TextInput style={styles.input}
-          placeholder='Ingrese su DNI'
-          keyboardType='numeric'
-        />
-        <TextInput style={styles.input}
-          placeholder='Ingrese su Usuario'
-          keyboardType="default"   // 👈 teclado de letras
-        />
-        <TextInput style={styles.input}
-          secureTextEntry={true}
-          keyboardType="default"   // 👈 teclado de letras
-          placeholder='Ingrese su contraseña'
-        />
-        <TouchableOpacity style={styles.botonIngresar} onPress={mostraMensaje}>
-          <Text style={styles.textoBoton}>INGRESAR</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
+	const [materias, setMaterias] = useState<IMateria[]>(initialMaterias);
+
+	const handlerDesinscribir = (nombre: string) => {
+		setMaterias(materias => materias.filter(materia => materia.nombre !== nombre))
+	}
+
+	useEffect(() => {
+		consultarMaterias();
+	}, [])
+
+	return (
+		<View style={styles.container}>
+			<View style={styles.titulo}>
+				<Text style={{ fontSize: 20 }} >Las materias en las que estás inscripto:</Text>
+			</View>
+			<View style={styles.scrollView}>
+				<ScrollView>
+					{materias.map((materia, index) => {
+						return (
+							<Materia
+								key={index}
+								nombre={materia.nombre}
+								profesor={materia.profesor}
+								horario={materia.horario}
+								descripcion={materia.descripcion}
+								handlerDesinscribir={handlerDesinscribir}
+							/>
+						)
+					})}
+				</ScrollView>
+			</View>
+		</View>
+	)
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  titulo: {
-    fontSize: 18,
-    textAlign: "center",   // 👈 centra el texto horizontalmente
-  },
-  form: {
-    borderColor: "black",
-    borderWidth: 2,
-    marginTop: 10,
-    padding: 20,
-    width: "90%",
-    borderRadius: 5
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#E6B800",   // mismo color que el botón
-
-    height: 60,
-    marginTop: 15,
-    borderRadius: 10,
-    fontSize: 18,
-    textAlign: "center"
-  },
-  logo: {
-    width: 350,
-    height: 110
-  },
-  botonIngresar: {
-    marginTop: 20,        // separación desde el último input
-    backgroundColor: '#E6B800',
-    paddingVertical: 12,  // altura del botón
-    borderRadius: 8,      // esquinas redondeadas
-    alignItems: 'center', // centra el texto horizontalmente
-  },
-  textoBoton: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  subtitulo: {
-    marginTop: 10,
-    fontSize: 16,
-    textAlign: "center",   // centra el texto
-    fontWeight: "bold",
-    marginBottom: 10        // separa del primer input
-  },
-
-});
+	container: {
+		flex: 1,
+		alignItems: "center",
+		justifyContent: "center",
+		padding: 20
+	},
+	titulo: {
+		alignItems: "center",    // centra horizontalmente el texto
+		marginTop: 30,           // agrega espacio arriba del título
+		marginBottom: 10,        // separa del scroll
+	},
+	scrollView: {
+		flex: 3,
+		width: "100%",
+		height: 600,
+		marginTop: 10
+	}
+})
