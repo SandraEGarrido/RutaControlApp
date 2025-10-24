@@ -23,6 +23,7 @@ export default function Materia(props: IMateria) {
 						</View>
 						<Dialogo
 						handlerDesinscribir={props.handlerDesinscribir}
+						id={props.id}
 						nombre={props.nombre}
 						/>
 					</Card>

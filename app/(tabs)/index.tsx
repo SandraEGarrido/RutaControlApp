@@ -1,29 +1,49 @@
-import { StyleSheet, View, Text, ScrollView, Button } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, ActivityIndicator } from 'react-native';
 import { useState, useEffect } from 'react';
 import { IMateria } from '../types/IMateria';
 import Materia from "../../components/ifes/Materia";
-import { consultarMaterias } from "@/firebase/funciones"
+import { consultarMaterias, desinscribir } from "@/firebase/funciones"
 
 import { BookOpen } from "lucide-react-native"; // opcional, si querés el ícono
 
 export default function Materias() {
 
   const [materias, setMaterias] = useState<IMateria[]>([]);
+  const [loading, setLoading] = useState<boolean>(false)
 
-  const handlerDesinscribir = (nombre: string) => {
-    setMaterias(materias => materias.filter(materia => materia.nombre !== nombre))
+  const actualizarMaterias = (id: string) => {
+    setMaterias(materias => materias.filter(materia => materia.id !== id))
+    setLoading(false)
   }
 
-  const handleAddMateria = (materia : IMateria) => {
+  const handlerDesinscribir = (id: string) => {
+
+    setLoading(true)
+
+    desinscribir(id)
+      .then(result => actualizarMaterias(id))
+      .catch(err => console.error(err))
+  }
+
+
+  const handleAddMateria = (materia: IMateria) => {
     setMaterias(materias => [...materias, materia])
   }
- 
+
   useEffect(() => {
     console.log("use Effect")
     setMaterias([])
+
+    setLoading(true);
+
+
     // consultamos en firebase todas las materias que
     // está inscripto el alumno que se logueo.
-    consultarMaterias(handleAddMateria);
+
+
+    consultarMaterias(handleAddMateria)
+      .then(result => setLoading(false))
+      .catch(err => setLoading(false))
   }, [])
 
   return (
@@ -33,11 +53,13 @@ export default function Materias() {
         <View style={styles.tituloFila}>
           <BookOpen size={22} color="#1b2a2f" style={{ marginRight: 8 }} />
           <Text style={styles.tituloTexto}>
-            Las materias en las que estás inscripto:
+            {loading ? "Espere...." :
+              "Las materias en las que estás inscripto:"}
           </Text>
         </View>
 
         {/* 🔹 Mensaje si no hay materias */}
+
         {materias.length === 0 && (
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyTitle}>
@@ -50,24 +72,24 @@ export default function Materias() {
           </View>
         )}
       </View>
-
       <View style={styles.scrollView}>
-
-        <ScrollView>
-
-          {materias.map((materia, index) => {
-            return (
-              <Materia
-                key={index}
-                nombre={materia.nombre}
-                profesor={materia.profesor}
-                horario={materia.horario}
-                descripcion={materia.descripcion}
-                handlerDesinscribir={handlerDesinscribir}
-              />
-            )
-          })}
-        </ScrollView>
+        {loading ? <View style={styles.loading}><ActivityIndicator size="large" /></View> :
+          <ScrollView>
+            {materias.map((materia, index) => {
+              return (
+                <Materia
+                  key={index}
+                  id={materia.id}
+                  nombre={materia.nombre}
+                  profesor={materia.profesor}
+                  horario={materia.horario}
+                  descripcion={materia.descripcion}
+                  handlerDesinscribir={handlerDesinscribir}
+                />
+              )
+            })}
+          </ScrollView>
+        }
       </View>
     </View>
   )
@@ -149,6 +171,10 @@ const styles = StyleSheet.create({
     height: 600,
     marginTop: 10,
   },
+
+  loading: {
+    marginTop: 70
+  }
 });
 
 

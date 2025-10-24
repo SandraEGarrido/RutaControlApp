@@ -8,6 +8,7 @@ import { View, ToastAndroid, StyleSheet } from 'react-native';
 
 type DialogComponentProps = {
 	handlerDesinscribir: (nombre: string) => void
+	id: string
 	nombre: string
 }
 
@@ -31,7 +32,7 @@ export default function Dialogo(props: DialogComponentProps) {
 					<Dialog.Button
 						title="SÍ"
 						onPress={() => {
-							props.handlerDesinscribir(props.nombre); setConfirmar(false);
+							props.handlerDesinscribir(props.id); setConfirmar(false);
 							ToastAndroid.showWithGravity(
 								'✅ Inscripción cancelada correctamente',
 								ToastAndroid.LONG,
