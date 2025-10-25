@@ -1,6 +1,6 @@
 // Import the Firestore functions we need
 // (Importamos las funciones necesarias de Firestore)
-import { getDoc, doc, updateDoc } from "firebase/firestore";
+import { getDoc, doc, updateDoc, collection, addDoc } from "firebase/firestore";
 
 // Import the database (db) and authentication (auth) from our config file
 // (Importamos la base de datos y la autenticación desde config.js)
@@ -89,5 +89,15 @@ export async function desinscribir(materiaId) {
     materias: materiasActualizar
   })
 }
+
+export async function comentar(comentario) {
+
+  const docRef = await addDoc(collection(db, "comentarios"),comentario);
+
+  //console.log("Document written with ID: ", docRef.id);
+
+}
+
+
 
 

@@ -1,29 +1,43 @@
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, ToastAndroid } from 'react-native';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, ToastAndroid, ActivityIndicator } from 'react-native';
 
 import React, { useState } from 'react';
 
 import { Picker } from '@react-native-picker/picker';
+import { IComentario } from '../types/IComentario';
+import { comentar } from '@/firebase/funciones';
 
-export default function TabTwoScreen() {
+export default function Contacto() {
 
-  const [departamento, setDepartamento] = useState<string>()
-  const [asunto, setAsunto] = useState<string>()
-  const [comentario, setComentario] = useState<string>()
+  const [loading, setLoading] = useState<boolean>(false)
+  const [departamento, setDepartamento] = useState<string>("alumnos")
+  const [asunto, setAsunto] = useState<string>("")
+  const [comentario, setComentario] = useState<string>("")
 
-  function mostrarMensaje() {
-    console.log({
-      departamento: departamento,
-      asunto: asunto,
-      comentario: comentario
-    })
+  function limpiarForm() {
+    setDepartamento("alumnos")
+    setAsunto("")
+    setComentario("")
+  }
+
+  function comentarioEnviado() {
+    setLoading(false);
     ToastAndroid.showWithGravity('El mensaje ha sido enviado !!', ToastAndroid.LONG, ToastAndroid.TOP)
     limpiarForm()
   }
 
-  function limpiarForm(){
-    setDepartamento("")
-    setAsunto("")
-    setComentario("")
+  function guardarComentario() {
+
+    const datosForm: IComentario = {
+      departamento: departamento,
+      asunto: asunto,
+      comentario: comentario,
+      fecha: new Date().toLocaleString(),
+    }
+    setLoading(true)
+
+    comentar(datosForm)
+      .then(result => comentarioEnviado())
+      .catch(err => console.error(err))
   }
 
   function handleAsunto(value: string) {
@@ -36,7 +50,6 @@ export default function TabTwoScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.titulo}>Envíanos tu mensaje</Text>
-
 
       <View style={styles.form}>
         {/* Subtítulo con estilo mejorado */}
@@ -75,15 +88,18 @@ export default function TabTwoScreen() {
             onChangeText={handleComentario}
           />
         </View>
-        <TouchableOpacity style={styles.botonIngresar} onPress={mostrarMensaje}>
+        <TouchableOpacity style={styles.botonIngresar} onPress={guardarComentario}>
           <Text style={styles.textoBoton}>Enviar Mensaje</Text>
         </TouchableOpacity>
       </View>
+      {loading &&
+        <View style={{ marginTop: 20 }}>
+          <ActivityIndicator size="large" />
+        </View>
+      }
     </View>
-
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
