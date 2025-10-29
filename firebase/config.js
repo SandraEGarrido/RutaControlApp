@@ -1,44 +1,32 @@
-// Import the functions you need from the SDKs you need
-// (Importa las funciones que necesitás del SDK de Firebase)
-import { initializeApp } from "firebase/app";
-import { getAuth, initializeAuth,getReactNativePersistence } from "firebase/auth";
-import ReactNativeAsyncStorage from "@react-native-async-storage/async-storage";
+// 🔥 Importamos los módulos necesarios de Firebase
+import { initializeApp, getApps, getApp } from "firebase/app";
+import { initializeAuth, getReactNativePersistence } from "firebase/auth";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getFirestore } from "firebase/firestore";
 
-// (Este import cambió de ubicación: ahora viene de 'firebase/auth/react-native')
-
-// TODO: Add SDKs for Firebase products that you want to use
-// (Tareas pendientes: agregar otros SDKs de Firebase que quieras usar)
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// (Configuración de tu aplicación web de Firebase)
+// 🔧 Configuración del proyecto RutaControlApp
 const firebaseConfig = {
-  apiKey: "AIzaSyC5mlQJSywjdYnKWWrfYRih7vCfBRVHasQ",
-  authDomain: "ifes-native-1570d.firebaseapp.com",
-  projectId: "ifes-native-1570d",
-  storageBucket: "ifes-native-1570d.firebasestorage.app",
-  messagingSenderId: "363650888905",
-  appId: "1:363650888905:web:66423359dbebe3faec0918"
+  apiKey: "AIzaSyBsF3pNJ8arKH0uTdusTN8d1salzK7I_gc",
+  authDomain: "rutacontrolapp.firebaseapp.com",
+  projectId: "rutacontrolapp",
+  storageBucket: "rutacontrolapp.appspot.com",
+  messagingSenderId: "142858147279",
+  appId: "1:142858147279:web:9a550cd41ab24e43406eba"
 };
 
-// ✅ Initialize Firebase App
-// (Inicializamos la conexión con Firebase una sola vez)
-const app = initializeApp(firebaseConfig);
+// 🚀 Inicializamos la app solo si no existe otra
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
-// ✅ Initialize Auth with persistence using AsyncStorage
-// (Inicializamos la autenticación con persistencia usando AsyncStorage)
-// (Esto permite mantener la sesión iniciada incluso si se cierra la app)
+// 🔐 Configuramos la autenticación con persistencia local
 const auth = initializeAuth(app, {
-  persistence: getReactNativePersistence(ReactNativeAsyncStorage),
+  persistence: getReactNativePersistence(AsyncStorage),
 });
 
-// ✅ Inicializar Firestore
+// 💾 Inicializamos Firestore
 const db = getFirestore(app);
 
-// 🔍 Verificamos conexión
-console.log("🧩 Firestore conectado:", db);
+// 🧩 Mensaje de confirmación
+console.log("✅ Firebase y Firestore conectados correctamente a RutaControlApp");
 
-// ✅ Export both app and auth
-// (Exportamos tanto la app como la autenticación para usar en otros archivos)
+// 📤 Exportamos para usar en otros módulos
 export { app, auth, db };

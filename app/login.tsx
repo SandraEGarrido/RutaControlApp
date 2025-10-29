@@ -1,54 +1,54 @@
-import { 
-  StyleSheet, 
-  View, 
-  Text, 
-  TextInput, 
-  Image, 
-  TouchableOpacity, 
-  ToastAndroid, 
-  KeyboardAvoidingView, 
-  Platform, 
-  ScrollView 
-} from 'react-native';
+import {
+  StyleSheet,
+  View,
+  Text,
+  TextInput,
+  Image,
+  TouchableOpacity,
+  ToastAndroid,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+} from "react-native";
 import { useState } from "react";
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/firebase/config";
-
-import { router } from 'expo-router';
+import { router } from "expo-router";
 
 export default function Login() {
-
-  // Estados para guardar el correo y la contraseña
+  // 🧩 Acá defino los estados locales del formulario
+  // Guardo el correo y la contraseña que ingresa el chofer
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
 
-  // 🔐 Función de login
-  const login = () => {
+  // ✨ Este estado me permite saber qué input está enfocado
+  // Así puedo cambiarle el color del borde cuando el usuario lo selecciona
+  const [focusedInput, setFocusedInput] = useState<string | null>(null);
 
+  // 🔐 Esta función maneja el inicio de sesión
+  // Si las credenciales son correctas, ingreso a la app principal
+  const login = () => {
     signInWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
-        // ✅ Usuario autenticado correctamente
+        // ✅ Si el login fue exitoso, guardo el usuario actual
         const user = userCredential.user;
-        console.log("Te logueaste correctamente!!");
+        console.log("Inicio de sesión exitoso:", user.email);
 
-        router.replace("/")
+        // 👉 Una vez logueado, lo llevo al panel principal (tabs)
+        router.replace("/(tabs)");
 
-        // Mostrar mensaje de éxito
+        // ✅ Muestro un mensaje visual confirmando
         ToastAndroid.showWithGravity(
-          'Se ha ingresado correctamente!',
+          "Inicio de sesión exitoso. Bienvenido a RutaControl 🚛",
           ToastAndroid.LONG,
           ToastAndroid.TOP
         );
       })
       .catch((error) => {
-        // ❌ Error en el login
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        console.log(`errorCode: ${errorCode}, mensaje: ${errorMessage}`);
-
-        // Mostrar mensaje de error visual
+        // ❌ Si hay error, lo registro y muestro aviso
+        console.log("Error en el login:", error.code, error.message);
         ToastAndroid.showWithGravity(
-          'Error en el inicio de sesión. Verifique sus datos.',
+          "Error al iniciar sesión. Verifique sus datos.",
           ToastAndroid.LONG,
           ToastAndroid.TOP
         );
@@ -56,48 +56,57 @@ export default function Login() {
   };
 
   return (
-    // 🧩 Este contenedor evita que el teclado tape los inputs
+    // 🧱 Este contenedor evita que el teclado tape los campos
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={{ flex: 1 }}
     >
       <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}>
         <View style={styles.container}>
+          {/* 🚛 Logo institucional */}
           <Image
             style={styles.logo}
-            source={{
-              uri: 'https://ifes.edu.ar/assets/img/logo.png',
-            }}
+            source={require("../assets/images/rutacontrol_logo.png.png")} // ✅ corregida la ruta
           />
-          <Text style={styles.titulo}>
-            Bienvenido al sistema de gestión del alumno de IFES
-          </Text>
 
+          {/* 🧾 Título principal */}
+          <Text style={styles.titulo}>Bienvenido a RutaControl</Text>
+          <Text style={styles.subtitulo}>Inicie sesión para continuar</Text>
+
+          {/* 📋 Formulario de login */}
           <View style={styles.form}>
-            <Text style={styles.subtitulo}>Ingrese sus credenciales</Text>
-
             {/* 📧 Campo de correo electrónico */}
             <TextInput
-              style={styles.input}
-              placeholder='Ingrese su Usuario'
-              keyboardType="email-address" // 👈 muestra el @ en el teclado
-              autoCapitalize="none"         // 👈 evita mayúsculas automáticas
+              style={[
+                styles.input,
+                focusedInput === "email" && styles.inputFocused, // cambia color si está activo
+              ]}
+              placeholder="Correo electrónico"
+              keyboardType="email-address"
+              autoCapitalize="none"
               value={email}
-              onChangeText={(text) => setEmail(text)} // 👈 actualiza el estado
+              onFocus={() => setFocusedInput("email")} // activa el estado
+              onBlur={() => setFocusedInput(null)} // lo desactiva al salir
+              onChangeText={(text) => setEmail(text)}
             />
 
             {/* 🔒 Campo de contraseña */}
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input,
+                focusedInput === "password" && styles.inputFocused,
+              ]}
+              placeholder="Contraseña"
               secureTextEntry={true}
-              placeholder='Ingrese su contraseña'
               value={password}
-              onChangeText={(text) => setPassword(text)} // 👈 actualiza el estado
+              onFocus={() => setFocusedInput("password")}
+              onBlur={() => setFocusedInput(null)}
+              onChangeText={(text) => setPassword(text)}
             />
 
             {/* 🔘 Botón de ingreso */}
             <TouchableOpacity style={styles.botonIngresar} onPress={login}>
-              <Text style={styles.textoBoton}>INGRESAR</Text>
+              <Text style={styles.textoBoton}>Ingresar</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -106,55 +115,87 @@ export default function Login() {
   );
 }
 
-// 🎨 Tus mismos estilos, sin cambios
+// 🎨 Estilos visuales — tonos azul y coral corporativos
 const styles = StyleSheet.create({
+  // 🔹 Contenedor general centrado
   container: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: "#f0f4f8", // azul grisáceo claro
   },
-  titulo: {
-    fontSize: 18,
-    textAlign: "center",
-  },
-  form: {
-    borderColor: "black",
-    borderWidth: 2,
-    marginTop: 10,
-    padding: 20,
-    width: "90%",
-    borderRadius: 5,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#E6B800",
-    height: 60,
-    marginTop: 15,
-    borderRadius: 10,
-    fontSize: 18,
-    textAlign: "center",
-  },
+
+  // 🚛 Logo principal
   logo: {
-    width: 350,
-    height: 110,
+    width: 310, // agrando un poco el tamaño
+    height: 155,
+    marginBottom: 30, // dejo aire visual
   },
-  botonIngresar: {
-    marginTop: 20,
-    backgroundColor: '#E6B800',
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  textoBoton: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 16,
+
+  // 🧾 Título y subtítulo
+  titulo: {
+    fontSize: 24,
+    fontWeight: "800",
+    color: "#1b2a2f", // azul oscuro corporativo
+    marginBottom: 6,
+    textAlign: "center",
   },
   subtitulo: {
-    marginTop: 10,
-    fontSize: 16,
+    fontSize: 14,
+    color: "#555",
+    marginBottom: 20,
     textAlign: "center",
+  },
+
+  // 📋 Caja del formulario
+  form: {
+    width: "85%",
+    backgroundColor: "#fff",
+    padding: 25,
+    borderRadius: 15,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+
+  // ✏️ Campos de texto
+  input: {
+    borderWidth: 1.8,
+    borderColor: "#1b2a2f", // azul por defecto
+    backgroundColor: "#f9fafc", // gris azulado
+    height: 50,
+    borderRadius: 10,
+    paddingHorizontal: 15,
+    fontSize: 16,
+    marginBottom: 15,
+  },
+
+  // 🟠 Efecto visual cuando el campo está activo
+  inputFocused: {
+    borderColor: "#ff7b47", // coral suave
+    shadowColor: "#ff7b47",
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+
+  // 🔘 Botón de ingreso
+  botonIngresar: {
+    backgroundColor: "#ff7b47", // coral suave
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+
+  // 🧡 Texto del botón
+  textoBoton: {
+    color: "#fff",
+    fontSize: 16,
     fontWeight: "bold",
-    marginBottom: 10,
   },
 });
