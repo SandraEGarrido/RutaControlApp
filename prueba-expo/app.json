@@ -4,7 +4,7 @@
     "slug": "rutacontrolapp",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/rutacontrol_logo.png",
+    "icon": "../assets/images/rutacontrol_logo.png.png",
     "scheme": "pruebaexpo",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,

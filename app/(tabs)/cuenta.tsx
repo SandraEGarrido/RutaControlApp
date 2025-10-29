@@ -19,10 +19,12 @@ export default function TabTwoScreen() {
   return (
     <View style={styles.contaneir}>
       <Image
-        style={styles.logo}
-        source={{
-          uri: `${currentUser?.photoURL}`
-        }}
+        style={styles.avatar}
+        source={
+          currentUser?.photoURL
+            ? { uri: currentUser.photoURL } // 🟢 si el usuario tiene foto en Firebase
+            : require("@/assets/images/avatar_default.png") // 🧩 imagen local por defecto
+        }
       />
       <Text style={styles.texto}>Usuario:{currentUser?.displayName}</Text>
       <Text style={styles.texto}>Email: {currentUser?.email}</Text>
@@ -51,7 +53,8 @@ const styles = StyleSheet.create({
     marginTop: 6,                    // separación entre líneas (nombre y email)
   },
   botonIngresar: {
-    backgroundColor: '#E6B800', // amarillo dorado más suave
+    backgroundColor: '#ff6f61', // coral corporativo
+
     paddingVertical: 12,        // un poquito más de alto
     paddingHorizontal: 25,      // más ancho
     borderRadius: 12,           // bordes más redondeados
@@ -64,10 +67,21 @@ const styles = StyleSheet.create({
     elevation: 3,               // sombra en Android
   },
   textoBoton: {
-    color: "#333",              // texto oscuro sobre fondo claro
+    color: "#fff", // texto blanco sobre coral
     fontWeight: "bold",
     fontSize: 16,
     textTransform: "uppercase", // pone el texto en mayúsculas
     letterSpacing: 0.5,         // espacio entre letras
   },
+  avatar: {
+    width: 150,
+    height: 150,
+    borderRadius: 75, // 🔵 circular
+    marginBottom: 15,
+    borderWidth: 3,
+    borderColor: "#1b2a2f", // verde oscuro corporativo
+    backgroundColor: "#f5f5f5", // gris claro de fondo
+    elevation: 4, // sombra leve en Android
+  },
+
 });
