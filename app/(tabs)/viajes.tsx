@@ -1,138 +1,126 @@
 import { StyleSheet, View, Text, ScrollView, ActivityIndicator } from 'react-native';
 import { useState, useEffect } from 'react';
-import { IMateria } from '../types/IMateria';
-import Materia from "../../components/ifes/Materia";
-import { consultarMaterias, desinscribir } from "@/firebase/funciones"
+import { IViaje } from '../types/IViaje'; // ✅ importamos el tipo de datos de viaje
+import { consultarViajes } from "@/firebase/funciones"; // ✅ función que lee viajes desde Firebase
+import { MapPin } from "lucide-react-native"; // ✅ ícono decorativo (igual que el BookOpen)
 
-import { BookOpen } from "lucide-react-native"; // opcional, si querés el ícono
+// =======================================================
+// 🚚 COMPONENTE PRINCIPAL: VIAJES
+// =======================================================
+export default function Viajes() {
 
-export default function Materias() {
+  // 🔹 1. Definimos los estados
+  const [viajes, setViajes] = useState<IViaje[]>([]);  // lista de viajes
+  const [loading, setLoading] = useState<boolean>(false); // indicador de carga
 
-  const [materias, setMaterias] = useState<IMateria[]>([]);
-  const [loading, setLoading] = useState<boolean>(false)
+  // 🔹 2. Función auxiliar: agrega viajes al listado
+  const handleAddViaje = (viaje: IViaje) => {
+    setViajes((prev) => [...prev, viaje]); // acumula los viajes traídos desde Firebase
+  };
 
-  const actualizarMaterias = (id: string) => {
-    setMaterias(materias => materias.filter(materia => materia.id !== id))
-    setLoading(false)
-  }
-
-  const handlerDesinscribir = (id: string) => {
-
-    setLoading(true)
-
-    desinscribir(id)
-      .then(result => actualizarMaterias(id))
-      .catch(err => console.error(err))
-  }
-
-
-  const handleAddMateria = (materia: IMateria) => {
-    setMaterias(materias => [...materias, materia])
-  }
-
+  // 🔹 3. useEffect: ejecuta la consulta solo una vez al cargar la pantalla
   useEffect(() => {
-    console.log("use Effect")
-    setMaterias([])
+    console.log("📡 Consultando viajes del chofer...");
+    setViajes([]);      // limpia el listado anterior
+    setLoading(true);   // activa el spinner
 
-    setLoading(true);
+    consultarViajes(handleAddViaje)
+      .then(() => setLoading(false)) // si todo sale bien, desactiva el spinner
+      .catch((err) => {
+        console.error("❌ Error al cargar viajes:", err);
+        setLoading(false); // aunque falle, apaga el spinner
+      });
+  }, []); // 👈 se ejecuta solo al montar el componente
 
-
-    // consultamos en firebase todas las materias que
-    // está inscripto el alumno que se logueo.
-
-
-    consultarMaterias(handleAddMateria)
-      .then(result => setLoading(false))
-      .catch(err => setLoading(false))
-  }, [])
-
+  // 🔹 4. Renderizado del contenido
   return (
     <View style={styles.container}>
+      {/* Encabezado con ícono y título */}
       <View style={styles.titulo}>
-        {/* 🔹 Título principal */}
         <View style={styles.tituloFila}>
-          <BookOpen size={22} color="#1b2a2f" style={{ marginRight: 8 }} />
+          <MapPin size={22} color="#1b2a2f" style={{ marginRight: 8 }} />
           <Text style={styles.tituloTexto}>
-            {loading ? "Espere...." :
-              "Las materias en las que estás inscripto:"}
+            {loading ? "Cargando viajes..." : "Viajes registrados:"}
           </Text>
         </View>
 
-        {/* 🔹 Mensaje si no hay materias */}
-
-        {materias.length === 0 && (
+        {/* Mensaje si no hay viajes */}
+        {viajes.length === 0 && !loading && (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyTitle}>
-              No se encuentran inscripciones
-            </Text>
+            <Text style={styles.emptyTitle}>No se encontraron viajes</Text>
             <Text style={styles.emptyText}>
-              Podés anotarte desde la sección “Servicios” o consultar al
-              administrador.
+              Cuando el administrador cargue tus recorridos, aparecerán aquí.
             </Text>
           </View>
         )}
       </View>
+
+      {/* Contenido principal (Scroll con los viajes) */}
       <View style={styles.scrollView}>
-        {loading ? <View style={styles.loading}><ActivityIndicator size="large" /></View> :
+        {loading ? (
+          <View style={styles.loading}>
+            <ActivityIndicator size="large" color="#FF6F61" />
+          </View>
+        ) : (
           <ScrollView>
-            {materias.map((materia, index) => {
-              return (
-                <Materia
-                  key={index}
-                  id={materia.id}
-                  nombre={materia.nombre}
-                  profesor={materia.profesor}
-                  horario={materia.horario}
-                  descripcion={materia.descripcion}
-                  handlerDesinscribir={handlerDesinscribir}
-                />
-              )
-            })}
+            {viajes.map((viaje, index) => (
+              <View key={index} style={styles.card}>
+                <Text style={styles.cardTitle}>
+                  {viaje.origen} → {viaje.destino}
+                </Text>
+                <Text style={styles.cardText}>📅 Fecha: {viaje.fecha}</Text>
+                <Text style={styles.cardText}>🛣️ Kilómetros: {viaje.kilometros}</Text>
+                <Text style={styles.cardText}>👤 Chofer: {viaje.choferEmail}</Text>
+              </View>
+            ))}
           </ScrollView>
-        }
+        )}
       </View>
     </View>
-  )
+  );
 }
 
+// =======================================================
+// 🎨 ESTILOS – PALETA: Coral (#FF6F61), Verde oscuro (#1b2a2f), Gris claro (#f5f5f5)
+// =======================================================
 const styles = StyleSheet.create({
-  // 🔹 Contenedor general de la pantalla
   container: {
     flex: 1,
     backgroundColor: "#f5f5f5",
     paddingHorizontal: 20,
-    paddingTop: 90, // margen superior general
+    paddingTop: 90,
   },
-
-  // 🔹 Encabezado general
   titulo: {
     alignItems: "center",
-    marginBottom: 15, // 👈 reducimos un poco porque el recuadro tendrá su propio margen
+    marginBottom: 15,
     paddingBottom: 10,
     borderBottomWidth: 2,
-    borderColor: "#E6B800", // línea dorada debajo del título
+    borderColor: "#E6B800", // dorado institucional
   },
-
-  // 🔹 Fila del título (ícono + texto)
   tituloFila: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
   },
-
-  // 🔹 Texto principal del encabezado
   tituloTexto: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#1b2a2f", // verde oscuro
+    color: "#1b2a2f",
     marginLeft: 8,
   },
-
-  // 🔹 Bloque vacío (sin materias)
+  scrollView: {
+    flex: 3,
+    width: "100%",
+    height: 600,
+    marginTop: 10,
+  },
+  loading: {
+    marginTop: 70,
+  },
   emptyContainer: {
     backgroundColor: "#ffffff",
     borderLeftWidth: 4,
-    borderColor: "#E6B800", // línea lateral dorada
+    borderColor: "#FF6F61", // coral
     paddingVertical: 30,
     paddingHorizontal: 25,
     borderRadius: 14,
@@ -144,10 +132,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     width: "92%",
     alignSelf: "center",
-    marginTop: 35, // 👈✨ nuevo: separación entre el título y el recuadro
-    marginBottom: 40, // espacio inferior para respirar
+    marginTop: 35,
+    marginBottom: 40,
   },
-
   emptyTitle: {
     fontSize: 17,
     fontWeight: "700",
@@ -155,7 +142,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     textAlign: "center",
   },
-
   emptyText: {
     fontSize: 14,
     color: "#555",
@@ -163,18 +149,27 @@ const styles = StyleSheet.create({
     width: "90%",
     lineHeight: 20,
   },
-
-  // 🔹 Contenedor del Scroll (listado de materias)
-  scrollView: {
-    flex: 3,
-    width: "100%",
-    height: 600,
-    marginTop: 10,
+  card: {
+    backgroundColor: "#fff",
+    borderRadius: 14,
+    padding: 18,
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 5,
+    elevation: 3,
   },
-
-  loading: {
-    marginTop: 70
-  }
+  cardTitle: {
+    fontSize: 17,
+    fontWeight: "bold",
+    color: "#FF6F61", // coral
+    marginBottom: 4,
+  },
+  cardText: {
+    fontSize: 14,
+    color: "#333",
+    marginBottom: 2,
+  },
 });
 
 

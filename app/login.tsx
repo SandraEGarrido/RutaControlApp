@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
   logo: {
     width: 310, // agrando un poco el tamaño
     height: 155,
-    marginBottom: 30, // dejo aire visual
+    marginBottom: 30, // dejo aire visual 
   },
 
   // 🧾 Título y subtítulo

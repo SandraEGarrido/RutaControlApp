@@ -85,14 +85,17 @@ export default function TabLayout() {
       />
 
 
-      {/* 👷‍♂️ TAB 2: CHOFERES */}
-      {/* Muestra información o gestión de choferes */}
+      {/* 📢 TAB: AVISOS */}
       <Tabs.Screen
-        name="choferes" // 🔗 Nombre del archivo en app/(tabs)/choferes.tsx
+        name="avisos"
         options={{
-          title: 'Choferes',
+          title: 'Avisos',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'id-card' : 'id-card-outline'} size={26} color={color} />
+            <Ionicons
+              name={focused ? 'notifications' : 'notifications-outline'} // ícono de campana
+              size={26}
+              color={color}
+            />
           ),
         }}
       />
