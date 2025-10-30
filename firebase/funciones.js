@@ -3,7 +3,7 @@
 // 🔹 FUNCIONES FIREBASE – RUTACONTROL
 // =======================================================
 
-import { collection, addDoc, getDocs, query, where } from "firebase/firestore";
+import { collection, addDoc, getDocs, query, where, doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { db, auth } from "./config";
 
 
@@ -17,12 +17,15 @@ export async function consultarViajes(handleAddViaje) {
   // Obtenemos el usuario autenticado desde Firebase Auth
   const currentUser = auth.currentUser;
 
+
   // Verificamos si hay usuario logueado
   if (!currentUser) {
     console.warn("⚠️ No hay usuario logueado todavía");
     return;
   }
 
+  // 3️⃣ Mostramos el correo del usuario en consola
+  console.log("📡 Consultando viajes del chofer:", currentUser.email);
   try {
     // 1️⃣ Referencia a la colección 'viajes' en Firestore
     const viajesRef = collection(db, "viajes");
@@ -41,6 +44,7 @@ export async function consultarViajes(handleAddViaje) {
         fecha: data.fecha,
         kilometros: data.kilometros,
         choferEmail: data.choferEmail,
+        estado: data.estado || "pendiente",
       };
       handleAddViaje(viaje);
     });
@@ -64,7 +68,48 @@ export async function agregarViaje(viaje) {
 }
 
 // =======================================================
-// 💬 COMENTARIOS O AVISOS (A FUTURO)
+// 🚫 CANCELAR VIAJE (en lugar de eliminarlo)
+// =======================================================
+export async function cancelarViaje(id) {
+  try {
+    const viajeRef = doc(db, "viajes", id);
+    await updateDoc(viajeRef, { estado: "cancelado" });
+    console.log("🟠 Viaje cancelado correctamente:", id);
+  } catch (error) {
+    console.error("❌ Error al cancelar el viaje:", error);
+  }
+}
+
+// =======================================================
+// ❌ ELIMINAR VIAJE
+// =======================================================
+// Elimina un viaje específico de la colección 'viajes' según su ID.
+
+export async function eliminarViaje(viajeId) {
+  try {
+    await deleteDoc(doc(db, "viajes", viajeId));
+    console.log("🗑️ Viaje eliminado correctamente:", viajeId);
+  } catch (error) {
+    console.error("❌ Error al eliminar el viaje:", error);
+  }
+}
+
+// =======================================================
+// ✅ MARCAR VIAJE COMO REALIZADO
+// =======================================================
+
+export async function marcarViajeRealizado(id) {
+  try {
+    const ref = doc(db, "viajes", id);
+    await updateDoc(ref, { estado: "realizado" });
+    console.log("✅ Viaje marcado como realizado:", id);
+  } catch (error) {
+    console.error("❌ Error al actualizar estado:", error);
+  }
+}
+
+// =======================================================
+// 💬 COMENTARIOS O AVISOS 
 // =======================================================
 // Guarda un comentario general o aviso de parte del chofer.
 export async function comentar(comentario) {
@@ -75,8 +120,6 @@ export async function comentar(comentario) {
     console.error("❌ Error al agregar el comentario:", error);
   }
 }
-
-
 
 
 
