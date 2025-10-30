@@ -35,7 +35,8 @@ export default function Login() {
         console.log("Inicio de sesión exitoso:", user.email);
 
         // 👉 Una vez logueado, lo llevo al panel principal (tabs)
-        router.replace("/(tabs)");
+        router.replace("/viajes");
+
 
         // ✅ Muestro un mensaje visual confirmando
         ToastAndroid.showWithGravity(
@@ -66,7 +67,7 @@ export default function Login() {
           {/* 🚛 Logo institucional */}
           <Image
             style={styles.logo}
-            source={require("../assets/images/rutacontrol_logo.png.png")} // ✅ corregida la ruta
+            source={require("../assets/images/rutacontrol_logo2.png.png")} // ✅ corregida la ruta
           />
 
           {/* 🧾 Título principal */}

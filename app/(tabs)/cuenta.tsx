@@ -1,87 +1,90 @@
 import { StyleSheet, View, Text, Image, TouchableOpacity } from 'react-native';
-
 import { signOut } from 'firebase/auth';
 import { auth } from '@/firebase/config';
 import { router } from 'expo-router';
 
-export default function TabTwoScreen() {
+export default function CuentaScreen() {
+  const currentUser = auth.currentUser;
 
-  const currentUser = auth.currentUser
-
+  // 🔐 Función para cerrar sesión
   const cerrarSesion = () => {
-    signOut(auth).then(() => {
-      // Sign-out successful.
-    }).catch((error) => {
-      // An error happened.
-    });
-  }
+    signOut(auth)
+      .then(() => {
+        router.replace("/login"); // redirige al login
+      })
+      .catch((error) => {
+        console.error("Error al cerrar sesión:", error);
+      });
+  };
 
   return (
-    <View style={styles.contaneir}>
+    <View style={styles.container}>
+      {/* 🧍‍♂️ Avatar del usuario */}
       <Image
         style={styles.avatar}
-        source={
-          currentUser?.photoURL
-            ? { uri: currentUser.photoURL } // 🟢 si el usuario tiene foto en Firebase
-            : require("@/assets/images/avatar_default.png") // 🧩 imagen local por defecto
-        }
+        source={require('@/assets/images/avatar_default.png')}
       />
-      <Text style={styles.texto}>Usuario:{currentUser?.displayName}</Text>
-      <Text style={styles.texto}>Email: {currentUser?.email}</Text>
-      <TouchableOpacity style={styles.botonIngresar} onPress={cerrarSesion}>
-        <Text style={styles.textoBoton}>Cerrar Sesión</Text>
+
+
+      {/* 🧾 Información del usuario */}
+      <View style={styles.infoContainer}>
+        <Text style={styles.nombre}>Sesión iniciada</Text>
+<Text style={styles.email}>{currentUser?.email}</Text>
+
+      </View>
+
+      {/* 🔘 Botón para cerrar sesión */}
+      <TouchableOpacity style={styles.botonCerrar} onPress={cerrarSesion}>
+        <Text style={styles.textoBoton}>CERRAR SESIÓN</Text>
       </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  contaneir: {
+  container: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 20,                   // separa el bloque de texto de la imagen
-  },
-  logo: {
-    width: 220,
-    height: 220,
-  },
-  texto: {
-    fontSize: 18,
-    fontFamily: "sans-serif-medium", // tipografía más limpia y moderna
-    color: "#222",                   // color suave, no tan negro
-    marginTop: 6,                    // separación entre líneas (nombre y email)
-  },
-  botonIngresar: {
-    backgroundColor: '#ff6f61', // coral corporativo
-
-    paddingVertical: 12,        // un poquito más de alto
-    paddingHorizontal: 25,      // más ancho
-    borderRadius: 12,           // bordes más redondeados
-    marginTop: 20,
-    alignItems: "center",
-    shadowColor: "#000",        // sombra sutil
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 3,               // sombra en Android
-  },
-  textoBoton: {
-    color: "#fff", // texto blanco sobre coral
-    fontWeight: "bold",
-    fontSize: 16,
-    textTransform: "uppercase", // pone el texto en mayúsculas
-    letterSpacing: 0.5,         // espacio entre letras
+    backgroundColor: "#f5f5f5",
   },
   avatar: {
-    width: 150,
-    height: 150,
-    borderRadius: 75, // 🔵 circular
-    marginBottom: 15,
-    borderWidth: 3,
-    borderColor: "#1b2a2f", // verde oscuro corporativo
-    backgroundColor: "#f5f5f5", // gris claro de fondo
-    elevation: 4, // sombra leve en Android
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    borderWidth: 2,
+    borderColor: "#FF6F61",
+    marginBottom: 20,
   },
-
+  infoContainer: {
+    alignItems: "center",
+    marginBottom: 30,
+  },
+  nombre: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#1b2a2f", // verde oscuro de tu paleta
+  },
+  email: {
+    fontSize: 16,
+    color: "#555",
+    marginTop: 5,
+  },
+  botonCerrar: {
+    backgroundColor: "#FF6F61", // coral
+    paddingVertical: 12,
+    paddingHorizontal: 28,
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  textoBoton: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
+    textTransform: "uppercase",
+  },
 });
