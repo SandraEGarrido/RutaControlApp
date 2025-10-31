@@ -4,6 +4,7 @@
 // =======================================================
 
 import { collection, addDoc, getDocs, query, where, doc, updateDoc, deleteDoc } from "firebase/firestore";
+import { IAviso } from "../app/types/IAviso";
 import { db, auth } from "./config";
 
 
@@ -111,13 +112,29 @@ export async function marcarViajeRealizado(id) {
 // =======================================================
 // 💬 COMENTARIOS O AVISOS 
 // =======================================================
-// Guarda un comentario general o aviso de parte del chofer.
-export async function comentar(comentario) {
+/**
+ * Guarda un aviso enviado por un chofer
+ */
+export async function enviarAviso(aviso) {
   try {
-    const docRef = await addDoc(collection(db, "comentarios"), comentario);
-    console.log("💬 Comentario agregado con ID:", docRef.id);
+    const currentUser = auth.currentUser;
+    if (!currentUser || !currentUser.email) {
+      throw new Error("Usuario no autenticado");
+    }
+
+    const avisoCompleto = {
+      ...aviso,
+      choferEmail: currentUser.email,
+      fecha: new Date().toLocaleString()
+    };
+
+    const docRef = await addDoc(collection(db, "avisos"), avisoCompleto);
+    console.log("📨 Aviso guardado con ID:", docRef.id);
+    return docRef.id;
+
   } catch (error) {
-    console.error("❌ Error al agregar el comentario:", error);
+    console.error("❌ Error al guardar el aviso:", error);
+    throw error;
   }
 }
 

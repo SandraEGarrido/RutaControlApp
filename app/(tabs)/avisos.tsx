@@ -1,188 +1,202 @@
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, ToastAndroid, ActivityIndicator } from 'react-native';
+// =======================================================
+// 📢 MÓDULO DE AVISOS – RutaControlApp
+// Permite al chofer enviar avisos a diferentes áreas de la empresa
+// (Mecánica, Administración, Viajes) que se guardan en Firestore.
+// =======================================================
 
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, ActivityIndicator, ToastAndroid } from 'react-native';
 import React, { useState } from 'react';
-
 import { Picker } from '@react-native-picker/picker';
-import { IComentario } from '../types/IComentario';
-import { comentar } from '@/firebase/funciones';
+import { enviarAviso } from '@/firebase/funciones';
 
-export default function Contacto() {
+// =======================================================
+// 🧰 COMPONENTE: AVISOS DEL CHOFER
+// =======================================================
+export default function Avisos() {
+  // Estados de formulario
+  const [loading, setLoading] = useState<boolean>(false);
+  const [tipoAviso, setTipoAviso] = useState<string>('Mecánica'); // tipo de aviso (selector)
+  const [titulo, setTitulo] = useState<string>('');                // nuevo campo para el título
+  const [descripcion, setDescripcion] = useState<string>('');      // texto del mensaje o incidente
 
-  const [loading, setLoading] = useState<boolean>(false)
-  const [departamento, setDepartamento] = useState<string>("alumnos")
-  const [asunto, setAsunto] = useState<string>("")
-  const [comentario, setComentario] = useState<string>("")
-
+  // Limpia el formulario después del envío
   function limpiarForm() {
-    setDepartamento("alumnos")
-    setAsunto("")
-    setComentario("")
+    setTipoAviso('Mecánica');
+    setTitulo('');
+    setDescripcion('');
   }
 
-  function comentarioEnviado() {
+  // Muestra mensaje de confirmación
+  function avisoEnviado() {
     setLoading(false);
-    ToastAndroid.showWithGravity('El mensaje ha sido enviado !!', ToastAndroid.LONG, ToastAndroid.TOP)
-    limpiarForm()
+    ToastAndroid.showWithGravity(
+      '✅ Aviso enviado correctamente',
+      ToastAndroid.LONG,
+      ToastAndroid.TOP
+    );
+    limpiarForm();
   }
 
-  function guardarComentario() {
-
-    const datosForm: IComentario = {
-      departamento: departamento,
-      asunto: asunto,
-      comentario: comentario,
-      fecha: new Date().toLocaleString(),
+  // Envía el aviso a Firebase
+  async function guardarAviso() {
+    // Validamos campos antes de enviar
+    if (titulo.trim() === '' || descripcion.trim() === '') {
+      ToastAndroid.show('Por favor, complete todos los campos.', ToastAndroid.SHORT);
+      return;
     }
-    setLoading(true)
 
-    comentar(datosForm)
-      .then(result => comentarioEnviado())
-      .catch(err => console.error(err))
+    // Armamos el objeto de aviso con todos los datos
+    const nuevoAviso = {
+      tipo: tipoAviso,
+      titulo: titulo,
+      descripcion: descripcion,
+      fecha: new Date().toLocaleString(),
+    };
+
+    try {
+      setLoading(true);
+      await enviarAviso(nuevoAviso); // guardamos en Firestore
+      avisoEnviado();
+    } catch (error) {
+      console.error('❌ Error al guardar aviso:', error);
+      setLoading(false);
+    }
   }
 
-  function handleAsunto(value: string) {
-    setAsunto(value)
-  }
-
-  function handleComentario(value: string) {
-    setComentario(value)
-  }
+  // =======================================================
+  // 🧩 RENDERIZADO
+  // =======================================================
   return (
     <View style={styles.container}>
-      <Text style={styles.titulo}>Envíanos tu mensaje</Text>
+      {/* 🔹 Título principal de la pantalla */}
+      <Text style={styles.titulo}>🧾 Nuevo aviso</Text>
 
-      <View style={styles.form}>
-        {/* Subtítulo con estilo mejorado */}
-        <Text style={styles.subtitulo}>Seleccione el departamento con el cual quiere comunicarse</Text>
-
+      <View style={styles.card}>
+        {/* 🔸 Selector del tipo de aviso */}
+        <Text style={styles.label}>Seleccione el tipo de aviso:</Text>
         <Picker
           style={styles.picker}
-          selectedValue={departamento}
-          onValueChange={(itemValue, itemIndex) =>
-            setDepartamento(itemValue)
-          }>
-          <Picker.Item label="Alumnos" value="alumnos" />
-          <Picker.Item label="Bienestar" value="bienestar" />
-          <Picker.Item label="Administración" value="administracion" />
-          <Picker.Item label="Contable" value="contable" />
+          selectedValue={tipoAviso}
+          onValueChange={(itemValue) => setTipoAviso(itemValue)}
+        >
+          <Picker.Item label="Mecánica" value="Mecánica" />
+          <Picker.Item label="Administración" value="Administración" />
+          <Picker.Item label="Viajes" value="Viajes" />
+          <Picker.Item label="Contable" value="Contable" />
+          <Picker.Item label="Otros" value="Otros" />
         </Picker>
 
+        {/* 🔸 Campo de título */}
+        <Text style={styles.label}>Título del aviso:</Text>
         <TextInput
           style={styles.input}
-          placeholder='Ingrese el asunto'
-          keyboardType="default"
-          value={asunto}
-          onChangeText={handleAsunto}
+          placeholder="Ej: Avería en la unidad o solicitud administrativa"
+          placeholderTextColor="#666"
+          value={titulo}
+          onChangeText={setTitulo}
         />
 
-        {/* Bloque de comentario estilizado */}
-        <View style={styles.comentarioContainer}>
-          <TextInput
-            editable
-            multiline
-            numberOfLines={4}
-            maxLength={200}
-            style={styles.comentarioInput}
-            placeholder='Ingrese aquí su comentario'
-            value={comentario}
-            onChangeText={handleComentario}
-          />
-        </View>
-        <TouchableOpacity style={styles.botonIngresar} onPress={guardarComentario}>
-          <Text style={styles.textoBoton}>Enviar Mensaje</Text>
+        {/* 🔸 Campo de descripción */}
+        <Text style={styles.label}>Descripción:</Text>
+        <TextInput
+          style={styles.textArea}
+          placeholder="Describa brevemente el aviso o incidencia"
+          placeholderTextColor="#666"
+          value={descripcion}
+          onChangeText={setDescripcion}
+          multiline
+          numberOfLines={4}
+        />
+
+        {/* 🔸 Botón de envío */}
+        <TouchableOpacity style={styles.boton} onPress={guardarAviso}>
+          <Text style={styles.textoBoton}>Enviar Aviso</Text>
         </TouchableOpacity>
       </View>
-      {loading &&
-        <View style={{ marginTop: 20 }}>
-          <ActivityIndicator size="large" />
-        </View>
-      }
+
+      {/* 🔄 Indicador de carga */}
+      {loading && (
+        <ActivityIndicator size="large" color="#FF6F61" style={{ marginTop: 20 }} />
+      )}
     </View>
   );
 }
+
+// =======================================================
+// 🎨 ESTILOS – Paleta institucional RutaControl
+// =======================================================
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center"
+    backgroundColor: '#f5f5f5', // gris claro
+    alignItems: 'center',
+    paddingTop: 80,
   },
-  form: {
-    borderColor: "#E6B800",    // mismo dorado del botón para uniformar
-    borderWidth: 1.5,
-    marginTop: 10,
+  titulo: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#1b2a2f', // verde oscuro
+    marginBottom: 15,
+  },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    borderLeftWidth: 4,
+    borderColor: '#E6B800', // dorado institucional
     padding: 20,
-    width: "90%",
-    borderRadius: 10,          // un poco más redondeado
-    backgroundColor: "#ffffff", // fondo blanco para efecto de tarjeta
-
-    // 👇 sombra para Android y iOS
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
+    width: '90%',
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
     elevation: 4,
   },
-
-  titulo: {
-    fontSize: 20,
-    textAlign: "center",
-    fontWeight: "bold",
-    color: "#1b2a2f",
-    marginBottom: 10,
-    marginTop: 30,   // 👈 agregamos espacio superior
-  },
-
-  subtitulo: {
-    marginTop: 10,
+  label: {
+    color: '#1b2a2f',
+    fontWeight: '600',
     fontSize: 15,
-    textAlign: "left",         // alinea con los inputs
-    color: "#555",             // gris medio, para menor peso visual
-    marginBottom: 5,
+    marginTop: 8,
+    marginBottom: 4,
   },
   picker: {
     backgroundColor: '#f5f5f5',
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: '#E6B800',
-    borderRadius: 8,
-    marginVertical: 8,
-    paddingHorizontal: 10,
+    marginBottom: 10,
     color: '#1b2a2f',
   },
   input: {
     backgroundColor: '#f5f5f5',
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: '#E6B800',
-    borderRadius: 8,
-    padding: 10,
-    marginVertical: 8,
     color: '#1b2a2f',
+    padding: 10,
+    marginBottom: 10,
   },
-  comentarioContainer: {
+  textArea: {
     backgroundColor: '#f5f5f5',
-    borderWidth: 1,
-    borderColor: '#E6B800',  // mismo dorado del botón
     borderRadius: 8,
-    marginTop: 10,
-  },
-  comentarioInput: {
-    padding: 10,
-    height: 100,
-    fontSize: 16,
+    borderWidth: 1,
+    borderColor: '#E6B800',
     color: '#1b2a2f',
-    textAlignVertical: 'top',  // 👈 asegura que empiece desde arriba
+    padding: 10,
+    marginBottom: 15,
+    textAlignVertical: 'top', // alinea texto arriba
   },
-  botonIngresar: {
-    marginTop: 20,
-    backgroundColor: '#E6B800',
+  boton: {
+    backgroundColor: '#FF6F61', // coral principal
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    elevation: 3,
   },
   textoBoton: {
-    color: 'white',
+    color: '#fff',
     fontWeight: 'bold',
     fontSize: 16,
   },
-
 });
-
