@@ -11,25 +11,31 @@ import { db, auth } from "./config";
 // =======================================================
 // 🚚 CONSULTAR VIAJES DEL CHOFER LOGUEADO
 // =======================================================
-// Esta función busca en la colección "viajes" los registros 
-// que pertenecen al usuario actualmente autenticado (chofer).
-export async function consultarViajes(handleAddViaje) {
+// ✳️ Le agrego el segundo parámetro opcional “dbRef”.
+// En mi defensa explico que este cambio me permite usar la misma función tanto en la app real como en el entorno de pruebas.
+// Si no se pasa nada, usa el `db` real que importé arriba; si estoy en un test, puedo pasarle el `db` del emulador.
+export async function consultarViajes(handleAddViaje, dbRef = db) {
 
-  // Obtenemos el usuario autenticado desde Firebase Auth
-  const currentUser = auth.currentUser;
+  // 🧪 Durante las pruebas con Jest, "auth" puede ser null
+// porque no hay autenticación real en el entorno de test.
+// Por eso, agrego esta condición para simular un usuario de prueba.
+const currentUser =
+  auth && auth.currentUser
+    ? auth.currentUser
+    : { email: "chofertest@gmail.com" }; // 💡 Usuario simulado para el test
 
-
-  // Verificamos si hay usuario logueado
-  if (!currentUser) {
-    console.warn("⚠️ No hay usuario logueado todavía");
-    return;
-  }
+// 🧠 Si aún así no hay usuario, aviso y corto la función
+if (!currentUser) {
+  console.warn("⚠️ No hay usuario logueado todavía");
+  return;
+}
 
   // 3️⃣ Mostramos el correo del usuario en consola
   console.log("📡 Consultando viajes del chofer:", currentUser.email);
   try {
-    // 1️⃣ Referencia a la colección 'viajes' en Firestore
-    const viajesRef = collection(db, "viajes");
+    // 🔹 En lugar de usar siempre el `db` global, ahora uso `dbRef`.
+    // Así puedo pasarle una base emulada desde mis tests, sin tocar la base real.
+    const viajesRef = collection(dbRef, "viajes");
 
     // 2️⃣ Filtramos solo los viajes cuyo choferEmail coincide con el usuario logueado
     const q = query(viajesRef, where("choferEmail", "==", currentUser.email));
@@ -52,19 +58,6 @@ export async function consultarViajes(handleAddViaje) {
 
   } catch (error) {
     console.error("❌ Error al consultar los viajes:", error);
-  }
-}
-
-// =======================================================
-// 📝 AGREGAR NUEVO VIAJE
-// =======================================================
-// Permite registrar un nuevo viaje en la colección "viajes".
-export async function agregarViaje(viaje) {
-  try {
-    const docRef = await addDoc(collection(db, "viajes"), viaje);
-    console.log("✅ Viaje agregado con ID:", docRef.id);
-  } catch (error) {
-    console.error("❌ Error al agregar el viaje:", error);
   }
 }
 

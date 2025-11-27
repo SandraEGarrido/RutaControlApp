@@ -2,17 +2,34 @@
 // 🚚 COMPONENTE PRINCIPAL: VIAJES
 // =======================================================
 
-// 🔹 Importamos módulos base de React Native
-import { StyleSheet, View, Text, ScrollView, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
-import { useState, useEffect } from 'react';
+// 🔹 Importamos módulos base de React y React Native
+import React, { useState, useEffect } from "react";
+import {
+  StyleSheet,
+  View,
+  Text,
+  ScrollView,
+  ActivityIndicator,
+  Alert,
+  TouchableOpacity,
+} from "react-native";
 
 // 🔹 Importamos el tipo IViaje, que define la estructura de un viaje
-import { IViaje } from '../types/IViaje';
+import { IViaje } from "../types/IViaje";
 
 // 🔹 Importamos las funciones de Firebase necesarias
 // consultarViajes: obtiene todos los viajes del chofer logueado
 // marcarViajeRealizado: cambia el estado del viaje a “realizado”
-import { consultarViajes, marcarViajeRealizado, cancelarViaje, eliminarViaje } from "@/firebase/funciones";
+import {
+  consultarViajes,
+  marcarViajeRealizado,
+  cancelarViaje,
+  eliminarViaje,
+} from "@/firebase/funciones";
+
+// 🔹 Agrego esta línea para poder usar la base de datos real (defaultDb)
+// o una base emulada que me pase el test, según el contexto.
+import { db as defaultDb } from "@/firebase/config";
 
 // 🔹 Ícono decorativo (de la librería lucide-react-native)
 import { MapPin } from "lucide-react-native";
@@ -20,12 +37,14 @@ import { MapPin } from "lucide-react-native";
 // =======================================================
 // 🧭 COMPONENTE PRINCIPAL
 // =======================================================
-export default function Viajes() {
-
+// 🔹 Modifico la función para que pueda recibir un parámetro opcional “db”.
+// Si no se lo paso (como en la app real), usa la base de datos por defecto.
+// Si el test le pasa un “db” del emulador, entonces usará ese.
+export default function Viajes({ db = defaultDb }: { db?: any }) {
   // =====================================================
   // 1️⃣ ESTADOS PRINCIPALES
   // =====================================================
-  const [viajes, setViajes] = useState<IViaje[]>([]);   // Lista de viajes del chofer
+  const [viajes, setViajes] = useState<IViaje[]>([]); // Lista de viajes del chofer
   const [loading, setLoading] = useState<boolean>(false); // Indicador de carga (spinner)
 
   // =====================================================
@@ -34,7 +53,7 @@ export default function Viajes() {
   const handleAddViaje = (viaje: IViaje) => {
     // Se usa al traer los viajes desde Firebase.
     // “prev” representa el estado anterior de viajes.
-    setViajes((prev) => [...prev, viaje]);
+    setViajes((prev: IViaje[]) => [...prev, viaje]);
   };
 
   // =====================================================
@@ -42,27 +61,20 @@ export default function Viajes() {
   // =====================================================
   const handleMarcarRealizado = (id: string) => {
     // Mostramos una alerta de confirmación antes de marcar
-    Alert.alert(
-      "Confirmar",
-      "¿Deseás marcar este viaje como realizado?",
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Sí, marcar",
-          onPress: async () => {
-            // Si el usuario confirma, actualizamos en Firebase
-            await marcarViajeRealizado(id);
-
-            // Y también actualizamos el estado local (sin recargar todo)
-            setViajes((prev) =>
-              prev.map((v) =>
-                v.id === id ? { ...v, estado: "realizado" } : v
-              )
-            );
-          },
+    Alert.alert("Confirmar", "¿Deseás marcar este viaje como realizado?", [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Sí, marcar",
+        onPress: async () => {
+          await marcarViajeRealizado(id);
+          setViajes((prev: IViaje[]) =>
+            prev.map((v: IViaje) =>
+              v.id === id ? { ...v, estado: "realizado" } : v
+            )
+          );
         },
-      ]
-    );
+      },
+    ]);
   };
 
   // =====================================================
@@ -71,14 +83,13 @@ export default function Viajes() {
   const handleCancelarViaje = (id: string) => {
     cancelarViaje(id)
       .then(() => {
-        // Si la actualización fue exitosa, reflejamos el cambio localmente
-        setViajes((viajes) =>
-          viajes.map((v) =>
+        setViajes((viajes: IViaje[]) =>
+          viajes.map((v: IViaje) =>
             v.id === id ? { ...v, estado: "cancelado" } : v
           )
         );
       })
-      .catch((err) => console.error("❌ Error al cancelar viaje:", err));
+      .catch((err: any) => console.error("❌ Error al cancelar viaje:", err));
   };
 
   // =====================================================
@@ -87,34 +98,33 @@ export default function Viajes() {
   const handleEliminarViaje = (id: string) => {
     eliminarViaje(id)
       .then(() => {
-        // Eliminamos el viaje de la lista local
-        setViajes((viajes) => viajes.filter((v) => v.id !== id));
+        setViajes((viajes: IViaje[]) =>
+          viajes.filter((v: IViaje) => v.id !== id)
+        );
       })
-      .catch((err) => console.error(err));
+      .catch((err: any) => console.error(err));
   };
 
   // =====================================================
   // 6️⃣ useEffect: CARGAR VIAJES DESDE FIREBASE
   // =====================================================
   useEffect(() => {
-    setViajes([]);      // Limpia cualquier lista anterior
-    setLoading(true);   // Activa el spinner
+    setViajes([]); // Limpia cualquier lista anterior
+    setLoading(true); // Activa el spinner
 
-    // Llama a Firebase y trae los viajes del chofer autenticado
-    consultarViajes(handleAddViaje)
-      .then(() => setLoading(false)) // Desactiva el spinner si todo sale bien
-      .catch((err) => {
+    consultarViajes(handleAddViaje, db)
+      .then(() => setLoading(false))
+      .catch((err: any) => {
         console.error("❌ Error al cargar viajes:", err);
-        setLoading(false); // Aunque haya error, apagamos el spinner
+        setLoading(false);
       });
-  }, []); // 👈 Se ejecuta solo una vez (al montar el componente)
+  }, []);
 
   // =====================================================
   // 7️⃣ RENDERIZADO DE LA INTERFAZ
   // =====================================================
   return (
     <View style={styles.container}>
-
       {/* 🔸 Encabezado principal con ícono y título */}
       <View style={styles.titulo}>
         <View style={styles.tituloFila}>
@@ -138,23 +148,20 @@ export default function Viajes() {
       {/* 🔸 Sección principal con la lista o el spinner */}
       <View style={styles.scrollView}>
         {loading ? (
-          // Si loading es true, muestra el spinner
           <View style={styles.loading}>
             <ActivityIndicator size="large" color="#FF6F61" />
           </View>
         ) : (
-          // Si no está cargando, muestra los viajes
           <ScrollView>
-            {viajes.map((viaje, index) => (
+            {viajes.map((viaje: IViaje, index: number) => (
               <View
-                key={index}
+                key={index.toString()} // 👈 TypeScript exige el toString()
                 style={[
                   styles.card,
-                  viaje.estado === "realizado" && styles.cardRealizado, // verde si está realizado
-                  viaje.estado === "cancelado" && styles.cardCancelado, // gris si fue cancelado
+                  viaje.estado === "realizado" && styles.cardRealizado,
+                  viaje.estado === "cancelado" && styles.cardCancelado,
                 ]}
               >
-                {/* 🔹 Datos principales del viaje */}
                 <Text
                   style={[
                     styles.cardTitle,
@@ -166,18 +173,22 @@ export default function Viajes() {
                 </Text>
 
                 <Text style={styles.cardText}>📅 Fecha: {viaje.fecha}</Text>
-                <Text style={styles.cardText}>🛣️ Kilómetros: {viaje.kilometros}</Text>
-                <Text style={styles.cardText}>👤 Chofer: {viaje.choferEmail}</Text>
+                <Text style={styles.cardText}>
+                  🛣️ Kilómetros: {viaje.kilometros}
+                </Text>
+                <Text style={styles.cardText}>
+                  👤 Chofer: {viaje.choferEmail}
+                </Text>
 
-                {/* 🔸 Botones de acción según estado */}
                 {viaje.estado === "pendiente" ? (
                   <>
-                    {/* Botón para marcar como realizado */}
                     <TouchableOpacity
                       style={styles.botonRealizado}
                       onPress={() => handleMarcarRealizado(viaje.id!)}
                     >
-                      <Text style={styles.textoBoton}>MARCAR COMO REALIZADO</Text>
+                      <Text style={styles.textoBoton}>
+                        MARCAR COMO REALIZADO
+                      </Text>
                     </TouchableOpacity>
                   </>
                 ) : viaje.estado === "realizado" ? (
@@ -193,6 +204,7 @@ export default function Viajes() {
     </View>
   );
 }
+
 
 // =======================================================
 // 🎨 ESTILOS VISUALES
