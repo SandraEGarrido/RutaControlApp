@@ -2,7 +2,8 @@
 // 🚚 COMPONENTE PRINCIPAL: VIAJES
 // =======================================================
 
-// 🔹 Importamos módulos base de React y React Native
+// 🔹 Importo módulos base de React y React Native
+// Uso useState y useEffect para manejar estado y efectos.
 import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
@@ -14,22 +15,25 @@ import {
   TouchableOpacity,
 } from "react-native";
 
-// 🔹 Importamos el tipo IViaje, que define la estructura de un viaje
+// 🔹 Importo el tipo IViaje, que define la estructura de un viaje
+// Esto me ayuda a tipar correctamente los datos que recibo de Firebase.
 import { IViaje } from "../types/IViaje";
 
-// 🔹 Importamos las funciones de Firebase necesarias
+// 🔹 Importo las funciones de Firebase necesarias
 // consultarViajes: obtiene todos los viajes del chofer logueado
 // marcarViajeRealizado: cambia el estado del viaje a “realizado”
+// cancelarViaje: cambia el estado a “cancelado”
+// eliminarViaje: borra el viaje completamente
 import {
   consultarViajes,
   marcarViajeRealizado,
   cancelarViaje,
   eliminarViaje,
-} from "@/firebase/funciones";
+} from "../../firebase/funciones";
 
-// 🔹 Agrego esta línea para poder usar la base de datos real (defaultDb)
-// o una base emulada que me pase el test, según el contexto.
-import { db as defaultDb } from "@/firebase/config";
+// 🔹 Importo la base de datos por defecto (defaultDb)
+// En la app real uso esta base, pero en los tests puedo inyectar otra (emulador).
+import { db as defaultDb } from "../../firebase/config";
 
 // 🔹 Ícono decorativo (de la librería lucide-react-native)
 import { MapPin } from "lucide-react-native";
@@ -51,7 +55,7 @@ export default function Viajes({ db = defaultDb }: { db?: any }) {
   // 2️⃣ FUNCIÓN AUXILIAR: AGREGA VIAJES AL LISTADO
   // =====================================================
   const handleAddViaje = (viaje: IViaje) => {
-    // Se usa al traer los viajes desde Firebase.
+    // Uso esta función cuando consulto viajes desde Firebase.
     // “prev” representa el estado anterior de viajes.
     setViajes((prev: IViaje[]) => [...prev, viaje]);
   };
@@ -60,13 +64,14 @@ export default function Viajes({ db = defaultDb }: { db?: any }) {
   // 3️⃣ MARCAR VIAJE COMO REALIZADO
   // =====================================================
   const handleMarcarRealizado = (id: string) => {
-    // Mostramos una alerta de confirmación antes de marcar
+    // Muestro una alerta de confirmación antes de marcar
     Alert.alert("Confirmar", "¿Deseás marcar este viaje como realizado?", [
       { text: "Cancelar", style: "cancel" },
       {
         text: "Sí, marcar",
         onPress: async () => {
           await marcarViajeRealizado(id);
+          // Actualizo el estado local para reflejar el cambio
           setViajes((prev: IViaje[]) =>
             prev.map((v: IViaje) =>
               v.id === id ? { ...v, estado: "realizado" } : v
@@ -102,15 +107,15 @@ export default function Viajes({ db = defaultDb }: { db?: any }) {
           viajes.filter((v: IViaje) => v.id !== id)
         );
       })
-      .catch((err: any) => console.error(err));
+      .catch((err: any) => console.error("❌ Error al eliminar viaje:", err));
   };
 
   // =====================================================
   // 6️⃣ useEffect: CARGAR VIAJES DESDE FIREBASE
   // =====================================================
   useEffect(() => {
-    setViajes([]); // Limpia cualquier lista anterior
-    setLoading(true); // Activa el spinner
+    setViajes([]); // Limpio cualquier lista anterior
+    setLoading(true); // Activo el spinner
 
     consultarViajes(handleAddViaje, db)
       .then(() => setLoading(false))
@@ -118,7 +123,7 @@ export default function Viajes({ db = defaultDb }: { db?: any }) {
         console.error("❌ Error al cargar viajes:", err);
         setLoading(false);
       });
-  }, []);
+  }, [db]); // 🔹 Cambio propuesto: agrego “db” como dependencia
 
   // =====================================================
   // 7️⃣ RENDERIZADO DE LA INTERFAZ
@@ -134,7 +139,7 @@ export default function Viajes({ db = defaultDb }: { db?: any }) {
           </Text>
         </View>
 
-        {/* 🔸 Si no hay viajes y no está cargando, mostramos un mensaje */}
+        {/* 🔸 Si no hay viajes y no está cargando, muestro un mensaje */}
         {viajes.length === 0 && !loading && (
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyTitle}>No se encontraron viajes</Text>
@@ -179,7 +184,10 @@ export default function Viajes({ db = defaultDb }: { db?: any }) {
                 <Text style={styles.cardText}>
                   👤 Chofer: {viaje.choferEmail}
                 </Text>
+                {/* ✅ Nueva línea agregada: muestro el estado */}
+                <Text style={styles.cardText}>🕓 Estado: {viaje.estado}</Text>
 
+                {/* 🔹 Botón o texto según el estado */}
                 {viaje.estado === "pendiente" ? (
                   <>
                     <TouchableOpacity

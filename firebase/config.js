@@ -45,7 +45,7 @@ const db = getFirestore(app);
 // En lugar de conectarme a la base real en la nube,
 // conecto Firestore al emulador que corre en mi computadora (localhost, puerto 8080).
 // Esto me permite hacer pruebas sin riesgo de modificar datos reales.
-connectFirestoreEmulator(db, "localhost", 8080);
+connectFirestoreEmulator(db, "127.0.0.1", 8080);
 
 // =======================================================
 // ✅ CONFIRMACIÓN DE CONEXIÓN
