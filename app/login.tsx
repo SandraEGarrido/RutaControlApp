@@ -1,3 +1,11 @@
+
+// =======================================================
+// 🔹 Importaciones para iniciar sesión con Google
+// =======================================================
+import * as WebBrowser from "expo-web-browser"; // Abre y cierra la ventana de autenticación de Google
+import * as Google from "expo-auth-session/providers/google"; // Maneja el flujo OAuth con Google
+import { getAuth, signInWithCredential, GoogleAuthProvider } from "firebase/auth"; // Conecta el token de Google con Firebase
+import { useEffect } from "react"; // Hook de React para ejecutar lógica después de autenticarse
 import {
   StyleSheet,
   View,
