@@ -45,6 +45,14 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "androidClientId": "142858147279-nbdq7qag21dgs9ctbmn3830441sek2vi.apps.googleusercontent.com",
+      "googleWebClientId": "142858147279-i8keve6dddqisodo432f4q0ockmh0don.apps.googleusercontent.com",
+      "router": {},
+      "eas": {
+        "projectId": "a5647d26-b05c-46a0-b478-7cdb66725191"
+      }
     }
   }
 }
