@@ -53,6 +53,8 @@ connectFirestoreEmulator(db, "127.0.0.1", 8080);
 // Agrego un mensaje en consola para confirmar que todo quedó conectado correctamente.
 // Me sirve como referencia cuando ejecuto los tests.
 console.log("✅ Firebase (modo test) conectado al emulador correctamente");
+console.log("🧪 Modo prueba: usando chofer simulado (chofertest@gmail.com)");
+
 
 // =======================================================
 // 📤 EXPORTACIÓN
